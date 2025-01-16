@@ -90,7 +90,7 @@ pipeline {
                 '''
             }
         }
-        stage('Deploy prod') {
+        stage('Approval stage -> prod') {
 
             steps {
                 input message: 'Approved?', ok: 'Approved'
