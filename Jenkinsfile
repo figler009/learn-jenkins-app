@@ -93,7 +93,10 @@ pipeline {
         stage('Approval stage -> prod') {
 
             steps {
-                input message: 'Approved?', ok: 'Approved'
+                timeout(activity: true, time: 15) {
+                    input message: 'Approved?', ok: 'Approved'
+                }
+                
             }
         }
         stage('Deploy prod') {
