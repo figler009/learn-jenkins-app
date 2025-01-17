@@ -6,6 +6,25 @@ pipeline {
     }
 
     stages {
+                stage("Deploy prod"){
+            agent {
+                docker {
+                    image "amazon/aws-cli"
+                    args "--entrypoint=''"
+                    reuseNode true
+                }
+            }
+
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'd378a78c-6579-4117-b8ba-a6ff9e91cb3a', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh """
+                        aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json
+                    """
+                }
+
+            }
+        }
+
         stage('Build') {
             agent {
                 docker {
@@ -22,107 +41,6 @@ pipeline {
                     npm run build
                     ls -la
                 '''
-            }
-        }
-
-        stage('Tests') {
-            parallel {
-                stage('Unit tests') {
-                    agent {
-                        docker {
-                            image 'node:18-alpine'
-                            reuseNode true
-                        }
-                    }
-
-                    steps {
-                        sh '''
-                            #test -f build/index.html
-                            npm test
-                        '''
-                    }
-                    post {
-                        always {
-                            junit 'jest-results/junit.xml'
-                        }
-                    }
-                }
-
-                stage('E2E') {
-                    agent {
-                        docker {
-                            image 'my-playwright'
-                            reuseNode true
-                        }
-                    }
-
-                    steps {
-                        sh '''
-                            serve -s build &
-                            sleep 10
-                            npx playwright test  --reporter=html
-                        '''
-                    }
-
-                    post {
-                        always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
-                        }
-                    }
-                }
-            }
-        }
-
-        stage("Deploy stagin"){
-            agent {
-                docker {
-                    image "amazon/aws-cli"
-                    args "--entrypoint=''"
-                    reuseNode true
-                }
-            }
-            environment{
-                S3_BUCKET_NAME="jenkins-site-figler009"
-            }
-            steps{
-                withCredentials([usernamePassword(credentialsId: 'd378a78c-6579-4117-b8ba-a6ff9e91cb3a', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh """
-                        aws s3 sync ./build s3://$S3_BUCKET_NAME/stage_env
-                    """
-                }
-
-            }
-        }
-
-
-        stage('Approval stage -> prod') {
-
-            steps {
-                timeout(activity: true, time: 15) {
-                    input message: 'Approved?', ok: 'Approved'
-                }
-                
-            }
-        }
-
-        stage("Deploy prod"){
-            agent {
-                docker {
-                    image "amazon/aws-cli"
-                    args "--entrypoint=''"
-                    reuseNode true
-                }
-            }
-            environment{
-                S3_BUCKET_NAME="jenkins-site-figler009"
-            }
-            steps{
-                withCredentials([usernamePassword(credentialsId: 'd378a78c-6579-4117-b8ba-a6ff9e91cb3a', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh """
-                        aws s3 sync ./build s3://$S3_BUCKET_NAME
-                    """
-                }
-
             }
         }
     }
