@@ -3,10 +3,11 @@ pipeline {
 
     environment { 
         REACT_APP_VERSION = "1.0.$BUILD_ID"
-        AWS_DEFAULT_REGION="us-east-1"
-        AWS_ECS_CLUSTER="LearnJenkinsApp-Cluster-prod"
-        AWS_ECS_CLUSTER_SERVICE_PROD="LearnJenkinApp-Service-Prod"
-        AWS_ECS_TD_PROD="LearnJenkinsApp-TaskDeifinition-Prod"
+        APP_NAME = "myjenkinsapp"
+        AWS_DEFAULT_REGION = "us-east-1"
+        AWS_ECS_CLUSTER = "LearnJenkinsApp-Cluster-prod"
+        AWS_ECS_CLUSTER_SERVICE_PROD = "LearnJenkinApp-Service-Prod"
+        AWS_ECS_TD_PROD = "LearnJenkinsApp-TaskDeifinition-Prod"
 
     }
 
@@ -39,15 +40,15 @@ pipeline {
                 }
             }
             steps {
-                sh "docker build -t myjenkinsapp ."
+                sh "docker build -t $APP_NAME:$REACT_APP_VERSION ."
             }
         }
 
         stage("Deploy prod"){
             agent {
                 docker {
-                    image "amazon/aws-cli"
-                    args "-u root --entrypoint=''"
+                    image "my-aws-cli"
+                    args "--entrypoint=''"
                     reuseNode true
                 }
             }
