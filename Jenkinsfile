@@ -84,7 +84,7 @@ pipeline {
         stage('Deploy staging') {
             agent {
                 docker {
-                    image 'my-playwrigh'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
@@ -106,7 +106,7 @@ pipeline {
         stage('Deploy prod') {
             agent {
                 docker {
-                    image 'my-playwrigh'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
