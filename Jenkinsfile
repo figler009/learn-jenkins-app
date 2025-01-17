@@ -2,10 +2,47 @@ pipeline {
     agent any
 
     environment { 
+        REACT_APP_VERSION = "1.0.$BUILD_ID"
         AWS_DEFAULT_REGION="us-east-1"
+        AWS_ECS_CLUSTER="LearnJenkinsApp-Cluster-prod"
+        AWS_ECS_CLUSTER_SERVICE_PROD="LearnJenkinApp-Service-Prod"
+        AWS_ECS_TD_PROD="LearnJenkinsApp-TaskDeifinition-Prod"
+
     }
 
     stages {
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la
+                '''
+            }
+        }
+
+        stage('Build Docker'){
+            agent {
+                docker {
+                    image "my-aws-cli"
+                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''"
+                    reuseNode true
+                }
+            }
+            steps {
+                sh "docker build -t myjenkinsapp ."
+            }
+        }
+
         stage("Deploy prod"){
             agent {
                 docker {
@@ -20,42 +57,25 @@ pipeline {
                     sh '''
                         yum install jq -y
 
-                        LATEST_TD_REVISION=$(aws ecs register-task-definition \
-                            --cli-input-json file://aws/task-definition-prod.json \
-                            | jq '.taskDefinition.revision')
+                        LATEST_TD_REVISION=$( \
+                            aws ecs register-task-definition \
+                                --cli-input-json file://aws/task-definition-prod.json \
+                                | jq '.taskDefinition.revision' \
+                        )
                         
                         echo $LATEST_TD_REVISION
                         aws ecs update-service \
-                            --cluster LearnJenkinsApp-Cluster-prod \
-                            --service LearnJenkinApp-Service-Prod \
-                            --task-definition LearnJenkinsApp-TaskDeifinition-Prod:$LATEST_TD_REVISION
+                            --cluster $AWS_ECS_CLUSTER \
+                            --service $AWS_ECS_CLUSTER_SERVICE_PROD \
+                            --task-definition $AWS_ECS_TD_PROD:$LATEST_TD_REVISION
 
                         aws ecs wait services-stable \
-                            --cluster LearnJenkinsApp-Cluster-prod \
-                            --services LearnJenkinApp-Service-Prod
+                            --cluster $AWS_ECS_CLUSTER \
+                            --services $AWS_ECS_CLUSTER_SERVICE_PROD
                     '''
                 }
 
             }
         }
-
-        // stage('Build') {
-        //     agent {
-        //         docker {
-        //             image 'node:18-alpine'
-        //             reuseNode true
-        //         }
-        //     }
-        //     steps {
-        //         sh '''
-        //             ls -la
-        //             node --version
-        //             npm --version
-        //             npm ci
-        //             npm run build
-        //             ls -la
-        //         '''
-        //     }
-        // }
     }
 }
