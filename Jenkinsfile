@@ -17,7 +17,7 @@ pipeline {
 
             steps{
                 withCredentials([usernamePassword(credentialsId: 'd378a78c-6579-4117-b8ba-a6ff9e91cb3a', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh """
+                    sh '''
                         yum install jq -y
 
                         LATEST_TD_REVISION=$(aws ecs register-task-definition \
@@ -29,7 +29,7 @@ pipeline {
                             --cluster LearnJenkinsApp-Cluster-prod \
                             --service LearnJenkinApp-Service-Prod \
                             --task-definition LearnJenkinsApp-TaskDeifinition-Prod:$LATEST_TD_REVISION
-                    """
+                    '''
                 }
 
             }
