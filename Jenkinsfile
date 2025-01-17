@@ -30,7 +30,7 @@ pipeline {
                             --service LearnJenkinApp-Service-Prod \
                             --task-definition LearnJenkinsApp-TaskDeifinition-Prod:$LATEST_TD_REVISION
 
-                        aws ecs wait service-stable \
+                        aws ecs wait services-stable \
                             --cluster LearnJenkinsApp-Cluster-prod \
                             --services LearnJenkinApp-Service-Prod
                     '''
