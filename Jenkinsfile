@@ -10,7 +10,7 @@ pipeline {
             agent {
                 docker {
                     image "amazon/aws-cli"
-                    args "--entrypoint=''"
+                    args "-u root --entrypoint=''"
                     reuseNode true
                 }
             }
@@ -26,7 +26,7 @@ pipeline {
                         aws ecs update-service \
                             --cluster LearnJenkinsApp-Cluster-prod \
                             --service LearnJenkinApp-Service-Prod \
-                            --task-definition LearnJenkinsApp-TaskDeifinition-Prod:2
+                            --task-definition LearnJenkinsApp-TaskDeifinition-Prod:$LATEST_TD_REVISION
                     """
                 }
 
