@@ -6,6 +6,12 @@ pipeline {
     }
 
     stages {
+
+        stage('Docker'){
+            stage {
+                sh "docker build -t my-playwright ."
+            }
+        }
         
         stage('Build') {
             agent {
@@ -78,15 +84,13 @@ pipeline {
         stage('Deploy staging') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-playwrigh'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-                    
+                    netlify --version
                 '''
             }
         }
@@ -102,15 +106,13 @@ pipeline {
         stage('Deploy prod') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'my-playwrigh'
                     reuseNode true
                 }
             }
             steps {
                 sh '''
-                    npm install netlify-cli
-                    node_modules/.bin/netlify --version
-                    
+                    netlify --version
                 '''
             }
         }
