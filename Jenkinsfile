@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment { 
-        NETLIFY_SITE_ID = 'c57261eb-c8bf-40f5-9297-aacc858aee8b'
+        AWS_DEFAULT_REGION="us-east-1"
     }
 
     stages {
-                stage("Deploy prod"){
+        stage("Deploy prod"){
             agent {
                 docker {
                     image "amazon/aws-cli"
