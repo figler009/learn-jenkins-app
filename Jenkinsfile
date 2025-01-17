@@ -56,7 +56,7 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'd378a78c-6579-4117-b8ba-a6ff9e91cb3a', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh """
-                        aws s3 cp ./build s3://$S3_BUCKET_NAME --recursive
+                        aws s3 sync ./build s3://$S3_BUCKET_NAME --recursive
                     """
                 }
 
